@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %} Home {% endblock %}
+
+{% block sidebar %}
+    <!-- Filter Sidebar with Collapsible Option -->
+    <div class="p-3 bg-light rounded mt-3">
+        <h5>Filter</h5>
+        <form method="GET" action="/">
+            <div class="accordion" id="filterAccordion">
+                <!-- Brand Filter Section -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                            Brands
+                        </button>
+                    </h2>
+                    <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#filterAccordion">
+                        <div class="accordion-body">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="brandAll" onclick="toggleAll(this)">
+                                <label class="form-check-label" for="brandAll">All</label>
+                            </div>
+                            {% for brand in brands %}
+                            <div class="form-check mb-2">
+                                <input class="form-check-input brand-checkbox" type="checkbox" id="brand{{ forloop.counter }}" name="brands" value="{{ brand }}" 
+                                    {% if brand in selected_brands %}checked{% endif %}>
+                                <label class="form-check-label" for="brand{{ forloop.counter }}">{{ brand }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Price Range Slider Section -->
+                <div class="accordion-item mt-3">
+                    <h2 class="accordion-header" id="headingTwo">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
+                            Price Range
+                        </button>
+                    </h2>
+                    <div id="collapseTwo" class="accordion-collapse collapse show" aria-labelledby="headingTwo" data-bs-parent="#filterAccordion">
+                        <div class="accordion-body">
+                            <label for="priceRange" class="form-label">Price Range: $<span id="minPrice">0</span> - $<span id="maxPrice">1000</span></label>
+                            <input type="range" class="form-range" min="0" max="1000" step="10" id="priceRangeMin" name="price_min" value="{{ request.GET.price_min|default:0 }}" oninput="updatePriceRange()">
+                            <input type="range" class="form-range mt-1" min="0" max="1000" step="10" id="priceRangeMax" name="price_max" value="{{ request.GET.price_max|default:1000 }}" oninput="updatePriceRange()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">Apply Filter</button>
+        </form>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid mt-3">
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-2" id="product_list">
+            {% for watch in watches %}
+                <div class="col">
+                    <div class="card shadow-sm h-100">
+                        <img src="uploads/{{ watch.image }}" class="card-img-top" style="height: 250px; object-fit: cover;" alt="{{ watch.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ watch.name }}</h5>
+                            <p class="card-text">{{ watch.desc }}</p>
+                            <p><strong>Price:</strong> ${{ watch.price }}</p>
+                            <div class="d-flex justify-content-between">
+                                <a href="/product/{{ watch.id }}" class="btn btn-primary btn-sm">View</a>
+                                <a href="/edit/{{ watch.id }}" class="btn btn-secondary btn-sm">Edit</a>
+                                <a href="/delete/{{ watch.id }}" class="btn btn-danger btn-sm">Delete</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+    // JavaScript function to update price range display
+    function updatePriceRange() {
+        var minPrice = document.getElementById("priceRangeMin").value;
+        var maxPrice = document.getElementById("priceRangeMax").value;
+        
+        if (parseInt(minPrice) > parseInt(maxPrice)) {
+            // Ensure min is always less than or equal to max
+            document.getElementById("priceRangeMax").value = minPrice;
+            maxPrice = minPrice;
+        }
+        
+        document.getElementById("minPrice").textContent = minPrice;
+        document.getElementById("maxPrice").textContent = maxPrice;
+    }
+
+    // Initialize with default values on load
+    document.addEventListener("DOMContentLoaded", updatePriceRange);
+</script>
+{% endblock %}
